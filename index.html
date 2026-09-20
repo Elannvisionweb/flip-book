@@ -583,12 +583,55 @@ a{ color:inherit; text-decoration:none; }
 .toc-dropdown:hover,.toc-dropdown:focus{ border-color:rgba(255,183,3,0.3); background:rgba(255,183,3,0.06); }
 .toc-dropdown option{ background:#14082a; color:var(--ink); }
 
-/* ══════════════════════════════ RESPONSIVE ══════════════════════════════ */
+/* ══════════════════════════════ RESPONSIVE (MOBILE OPTIMIZATIONS) ══════════════════════════════ */
 @media (max-width: 768px){
+  /* Disable expensive continuous background animations on mobile to guarantee 60fps */
+  .stage::before,
+  .cover-burst,
+  .cover-glow{
+    animation: none !important;
+    display: none !important;
+  }
+  #particleCanvas{
+    display: none !important;
+  }
+
+  /* Remove GPU-costly backdrop blurs on mobile */
+  .top-bar,
+  .nav-controls,
+  .icon-btn,
+  .cover-edition,
+  .media-tag{
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .nav-controls{
+    background: rgba(14,5,25,0.96) !important;
+  }
+  .top-bar{
+    background: rgba(14,5,25,0.96) !important;
+  }
+
+  /* Lightweight single-layer shadow for mobile */
+  #book{
+    box-shadow: 0 12px 28px rgba(0,0,0,0.6) !important;
+  }
+
+  /* Stage & layout spacing */
+  .stage{
+    padding: 10px 4px !important;
+    contain: paint;
+  }
+  .book-wrap{
+    transition: none !important;
+  }
   .top-bar .brand-lockup span.full{ display:none; }
   .cover-title{ font-size:28px; }
   .cover-logos img{ height:40px; }
-  .page-content{ padding:24px 20px 18px; }
+  .page-content{
+    padding: 24px 20px 18px;
+    touch-action: pan-y;
+  }
   .toc-dropdown{ max-width:110px; }
   .progress-track{ width:50px; }
 }
@@ -960,9 +1003,11 @@ if (!window.St || !window.St.PageFlip) {
     }, 600);
   });
 
-  // Particle background
+  var isMobile = (window.innerWidth <= 768) || ('ontouchstart' in window);
+
+  // Particle background (desktop only for 60fps mobile battery & GPU performance)
   var canvas = document.getElementById("particleCanvas");
-  if (canvas) {
+  if (canvas && !isMobile) {
     var ctx = canvas.getContext("2d");
     var particles = [];
     var PARTICLE_COUNT = 30;
@@ -1077,18 +1122,19 @@ if (!window.St || !window.St.PageFlip) {
   function initFlip() {
     if (window.St && window.St.PageFlip && bookEl) {
       try {
+        var mobile = (window.innerWidth <= 768) || ('ontouchstart' in window);
         pageFlip = new St.PageFlip(bookEl, {
           width: 700,
           height: 950,
           size: "fixed",
-          maxShadowOpacity: 0.32,
+          maxShadowOpacity: mobile ? 0.18 : 0.32,
           showCover: true,
-          mobileScrollSupport: false,
+          mobileScrollSupport: true,
           usePortrait: true,
-          flippingTime: 1000, // Smooth, natural 1-second physical turn
+          flippingTime: mobile ? 500 : 950, // Snappy on mobile, majestic on desktop
           useMouseEvents: true,
-          swipeDistance: 25,
-          showPageCorners: true,
+          swipeDistance: mobile ? 18 : 25,
+          showPageCorners: !mobile, // Disable on mobile to prevent continuous polygon recalculation
           startZIndex: 0
         });
 
@@ -1135,8 +1181,11 @@ if (!window.St || !window.St.PageFlip) {
 
   // Scale book for viewport smoothly
   function scaleBook(){
-    var w = window.innerWidth - 40;
-    var h = window.innerHeight - 110;
+    var mobile = window.innerWidth <= 768;
+    var padX = mobile ? 14 : 40;
+    var padY = mobile ? 70 : 110;
+    var w = window.innerWidth - padX;
+    var h = window.innerHeight - padY;
     var bw = (window.innerWidth < window.innerHeight) ? 700 : 1400;
     var sc = Math.min(w / bw, h / 950);
     document.documentElement.style.setProperty("--book-scale", Math.min(sc, 1));
