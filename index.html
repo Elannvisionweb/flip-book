@@ -178,7 +178,6 @@ a{ color:inherit; text-decoration:none; }
   position:relative; z-index:2;
   transform: scale(var(--book-scale, 1));
   transform-origin: center center;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 #book{
@@ -585,15 +584,41 @@ a{ color:inherit; text-decoration:none; }
 
 /* ══════════════════════════════ RESPONSIVE (MOBILE OPTIMIZATIONS) ══════════════════════════════ */
 @media (max-width: 768px){
-  /* Disable expensive continuous background animations on mobile to guarantee 60fps */
+  /* Eliminate heavy continuous background animations & pseudo-elements on mobile */
   .stage::before,
   .cover-burst,
-  .cover-glow{
+  .cover-glow,
+  .page::after,
+  .page::before,
+  .stat-card::after,
+  .eyebrow::before{
     animation: none !important;
     display: none !important;
   }
   #particleCanvas{
     display: none !important;
+  }
+
+  /* Strip expensive inset & multi-radius shadows */
+  .page{
+    box-shadow: none !important;
+  }
+  .stat-card,
+  .tier-card,
+  .matrix-row,
+  .impact-card,
+  .contact-card{
+    box-shadow: none !important;
+  }
+  .stat-card:hover,
+  .matrix-row:hover,
+  .impact-card:hover{
+    transform: none !important;
+  }
+  .stat-num,
+  .tier-price,
+  .matrix-row .item-price{
+    text-shadow: none !important;
   }
 
   /* Remove GPU-costly backdrop blurs on mobile */
@@ -614,7 +639,8 @@ a{ color:inherit; text-decoration:none; }
 
   /* Lightweight single-layer shadow for mobile */
   #book{
-    box-shadow: 0 12px 28px rgba(0,0,0,0.6) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.55) !important;
+    touch-action: manipulation;
   }
 
   /* Stage & layout spacing */
@@ -1127,14 +1153,15 @@ if (!window.St || !window.St.PageFlip) {
           width: 700,
           height: 950,
           size: "fixed",
-          maxShadowOpacity: mobile ? 0.18 : 0.32,
+          drawShadow: !mobile,        // Completely eliminate 2D canvas shadow polygon redraws on mobile
+          maxShadowOpacity: mobile ? 0 : 0.32,
           showCover: true,
-          mobileScrollSupport: true,
+          mobileScrollSupport: false, // Prevents non-passive touchmove event blocking
           usePortrait: true,
-          flippingTime: mobile ? 500 : 950, // Snappy on mobile, majestic on desktop
+          flippingTime: mobile ? 380 : 900, // 380ms provides instant, snappy response to finger swipes
           useMouseEvents: true,
-          swipeDistance: mobile ? 18 : 25,
-          showPageCorners: !mobile, // Disable on mobile to prevent continuous polygon recalculation
+          swipeDistance: mobile ? 14 : 25,
+          showPageCorners: false,     // Disable corner hover tracking on mobile
           startZIndex: 0
         });
 
