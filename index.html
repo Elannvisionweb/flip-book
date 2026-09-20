@@ -1006,7 +1006,7 @@ a{ color:inherit; text-decoration:none; }
 </div>
 
 <!-- Primary: Local vendored library; Fallback: jsDelivr CDN -->
-<script src="assets/js/page-flip.browser.js"></script>
+<script src="assets/js/page-flip.browser.js?v=2.2.0"></script>
 <script>
 if (!window.St || !window.St.PageFlip) {
   var cdnScript = document.createElement("script");
@@ -1168,7 +1168,10 @@ if (!window.St || !window.St.PageFlip) {
         pageFlip.loadFromHTML(document.querySelectorAll(".page"));
 
         for (var p = 0; p < pageFlip.getPageCount(); p++) {
-          try { pageFlip.getPage(p).setDensity("soft"); } catch(e){}
+          try {
+            // Hard density on mobile bypasses DOM cloning and polygon clip-path slicing for 100% native GPU 3D turns
+            pageFlip.getPage(p).setDensity(mobile ? "hard" : "soft");
+          } catch(e){}
         }
 
         updateUI();
@@ -1177,6 +1180,39 @@ if (!window.St || !window.St.PageFlip) {
         console.warn("PageFlip error:", err);
       }
     }
+  }
+
+  // Fast direct mobile touch swipe & tap navigation (no polygon lag)
+  var mobileUser = (window.innerWidth <= 768) || ('ontouchstart' in window);
+  if (mobileUser && bookEl) {
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var touchStartTime = 0;
+
+    bookEl.addEventListener("touchstart", function(e) {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }
+    }, { passive: true });
+
+    bookEl.addEventListener("touchend", function(e) {
+      if (e.changedTouches.length === 1 && pageFlip) {
+        var deltaX = e.changedTouches[0].clientX - touchStartX;
+        var deltaY = e.changedTouches[0].clientY - touchStartY;
+        var deltaTime = Date.now() - touchStartTime;
+
+        // Clean horizontal swipe
+        if (Math.abs(deltaX) > 30 && Math.abs(deltaY) < 65 && deltaTime < 450) {
+          if (deltaX < 0) {
+            pageFlip.flipNext();
+          } else {
+            pageFlip.flipPrev();
+          }
+        }
+      }
+    }, { passive: true });
   }
 
   if (window.St && window.St.PageFlip) {
