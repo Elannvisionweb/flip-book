@@ -1,0 +1,24 @@
+{
+  "name": "elan-nvision-2027-deck",
+  "version": "1.0.0",
+  "description": "Interactive 3D Flipbook Sponsorship Proposal for Elan & nVision 2027 (IIT Hyderabad) × Google",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 .",
+    "preview": "npx serve -l 3000 .",
+    "deploy": "npx wrangler pages deploy . --project-name elan-nvision-2027-deck"
+  },
+  "keywords": [
+    "elan-nvision",
+    "iit-hyderabad",
+    "sponsorship-deck",
+    "flipbook",
+    "cloudflare-pages",
+    "st-pageflip",
+    "presentation"
+  ],
+  "author": "Elan & nVision Team, IIT Hyderabad",
+  "license": "UNLICENSED",
+  "private": true
+}

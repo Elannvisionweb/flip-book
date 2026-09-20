@@ -1,0 +1,32 @@
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node & Package Managers
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Unrelated Certificate Transparency Dumps
+log_list.json
+log_list.ctfb.html
+*.ctfb
+*.ctfb.html
+
+# Local Test & Environment Logs
+*.log
+.env
+.env.local
